@@ -1,0 +1,27 @@
+import pandas as pd
+import numpy as np
+from transformers import pipeline
+import torch
+
+# Инициализация генератора текста
+generator = pipeline("text-generation", model="distilgpt2", device=0 if torch.cuda.is_available() else -1)
+
+# Функция для генерации ответа с учётом стиля
+def generate_response(prompt, style="neutral", max_length=50):
+    style_prompts = {
+        "neutral": "Answer in a neutral and professional tone: ",
+        "friendly": "Answer in a friendly and warm tone: ",
+        "sarcastic": "Answer in a sarcastic and witty tone: "
+    }
+    styled_prompt = style_prompts.get(style, style_prompts["neutral"]) + prompt
+    response = generator(styled_prompt, max_length=max_length, num_return_sequences=1, truncation=True)
+    return response[0]["generated_text"].replace(styled_prompt, "").strip()
+
+# Тестирование генерации текста
+prompt = "How are you today?"
+styles = ["neutral", "friendly", "sarcastic"]
+
+for style in styles:
+    print(f"\nСтиль: {style}")
+    response = generate_response(prompt, style=style)
+    print(f"Ответ: {response}")
